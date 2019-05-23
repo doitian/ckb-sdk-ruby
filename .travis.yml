@@ -18,3 +18,35 @@ install:
   - bundle install
 script:
   - bundle exec rake
+
+stages:
+  - test
+  - deploy
+jobs:
+  include:
+    - rvm: jruby
+      before_install: 
+        - gem install bundler -v 2.0.1
+      install:
+        - bundle install
+        - jruby -rjars/installer -e 'Jars::Installer.vendor_jars!'
+    - stage: deploy
+      if: 'tag IS present AND env(GITHUB_TOKEN) IS present'
+      rvm: jruby
+      before_install: 
+        - gem install bundler -v 2.0.1
+      install:
+        - bundle install
+        - jruby -rjars/installer -e 'Jars::Installer.vendor_jars!'
+      script:
+        - bundle exec rake jar
+      deploy:
+        provider: releases
+        api_key: "$GITHUB_TOKEN"
+        file_glob: true
+        file: ckb-console-*.jar
+        skip_cleanup: true
+        prerelease: true
+        on:
+          tags: true
+          condition: '"$GITHUB_TOKEN" != ""'
