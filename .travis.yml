@@ -40,11 +40,14 @@ jobs:
         - jruby -rjars/installer -e 'Jars::Installer.vendor_jars!'
       script:
         - bundle exec rake jar
+        - export CKB_VERSION=$(bundle exec ruby -e 'require "ckb"; puts CKB::VERSION')
+        - echo "java -jar ckb-console-${CKB_VERSION}.jar" > ckb-console-${CKB_VERSION}.bat
+        - zip ckb-console-${CKB_VERSION}-jar.zip ckb-console-${CKB_VERSION}.jar ckb-console-${CKB_VERSION}.bat
       deploy:
         provider: releases
         api_key: "$GITHUB_TOKEN"
         file_glob: true
-        file: ckb-console-*.jar
+        file: ckb-console-*-jar.zip
         skip_cleanup: true
         prerelease: true
         on:
